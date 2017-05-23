@@ -22,106 +22,157 @@ if(!"gridExtra" %in% installed.packages())
 }
 library(gridExtra)
 
-ui <- pageWithSidebar(
-    
-    # Application title
-    titlePanel("Literature Network app"),
-    
-    sidebarPanel(position = "right",
+if(!"shinythemes" %in% installed.packages()) 
+{ 
+    install.packages("shinythemes") 
+}
+library(shinythemes)
+
+if(!"shinyjs" %in% installed.packages()) 
+{ 
+    install.packages("shinyjs") 
+}
+library(shinyjs)
+
+ui <- navbarPage(title = "Literature Network app",
+                 theme = shinytheme("cerulean"),
                  
-                 p('This app serves the purpose of visualizing and analyzing a literature search done by multiple people. It plots a network visualization (co-occurrence and/or citation network) of the literature search and uses a posterior estimation algoritm based on the method by Derks et al. (2017) to determine ranks based on centrality measures of this network. These ranks are indicative for the importance of the article on the subject.'),
+                 tabPanel(title = "Analysis",
+                          
+                          strong(id = "text", 
+                                 span("Created by "),
+                                 a("Koen Derks", href = "https://www.linkedin.com/in/koen-derks-283273124/"),
+                                 HTML("&bull;"),
+                                 span("Code"),
+                                 a("on GitHub", href = "https://github.com/koenderks/LiteratureNetworksApp")
+                          ),
+                          
+                          sidebarLayout(
+                          sidebarPanel(id = "sidebar", position = "right",
+                                       
+                                       h3("Explanation"),
+                                       
+                                       p('This app serves the purpose of visualizing and analyzing a literature search. It plots a network visualization (co-occurrence and/or citation network) of the literature search. Its output contains ranks for all articles. These ranks are indicators for the relevance of the article on the subject.'),
+                                       
+                                       strong('Note: You do not have to specify both files. It is possible to run an analysis on one or both of the networks.'),
+                                       
+                                       br(),
+                                       br(),
+                                       
+                                       tags$a(href = "https://www.dropbox.com/sh/48i4t1hc63aufw0/AADUGGFkSkE3TXPYo6eaqLICa?dl=0", "Example datasets"),
+                                       
+                                       br(),
+                                       br(),
+                                       
+                                       radioButtons(inputId = "sort",
+                                                    label = "I want to see a:",
+                                                    choices = c("Full analysis" = "Full analysis",
+                                                                "Descriptives table" = "Descriptives"),
+                                                    selected = "Full analysis"),
+                                       
+                                       br(),
+                                       
+                                       useShinyjs(),
+                                       checkboxInput(inputId = "show",label = "Show co-occurrence data requirements"),
+                                       
+                                       h4(id = "line1", 'The data you select for a co-occurrence network should look like this:'),
+                                       
+                                       p(id = "line2", 'Column 1: ID of the raters (1,2,3 etc.).'),
+                                       
+                                       p(id = "line3", 'Column 2: Grade given by the rater (1-10).'),
+                                       
+                                       p(id = "line4", 'Column 3: General name of the article (e.g. Miller_Chapman_2001).'),
+                                       
+                                       radioButtons(inputId = "typedata", label = "My co-occurence data is of type:",
+                                                    choices = c(".csv" = ".csv",
+                                                                ".txt" = ".txt",
+                                                                ".xlsx" = ".xlsx"),
+                                                    selected = ".csv"),
+                                       
+                                       fileInput(inputId = 'data',
+                                                 label = 'Choose datafile for co-occurence network'),
+                                       
+                                       checkboxInput(inputId = "show2",label = "Show citation data requirements"),
+                                       
+                                       h4(id = "line5",'The data you select for a citation network should look like this:'),
+                                       
+                                       p(id = "line6",'Column 1: General name of the source article (e.g. Miller_Chapman_2001).'),
+                                       
+                                       p(id = "line7",'Column 2: General name of the target article (e.g. Evans_Anastasio_1968).'),
+                                       
+                                       p(id = "line8",'Column 3: A logical indicating a citation (1 = yes, 0 = no).'),
+                                       
+                                       radioButtons(inputId = "typedata2", label = "My citation data is of type:",
+                                                    choices = c(".csv" = ".csv",
+                                                                ".txt" = ".txt",
+                                                                ".xlsx" = ".xlsx"),
+                                                    selected = ".csv"),
+                                       
+                                       fileInput('data2',
+                                                 label = 'Choose datafile for citation network'),
+                                       
+                                       numericInput('length',
+                                                    label = '(Full anaysis only) I want to see a top:',
+                                                    value = 10,
+                                                    min = 1,
+                                                    max = 20),
+                                       
+                                       numericInput('samples',
+                                                    label = '(Full anaysis only) I want to take this many samples in the latent data augmentation:',
+                                                    value = 100,
+                                                    min = 1,
+                                                    max = 10000),
+                                       
+                                       actionButton(inputId = 'action',label = 'Run analysis', icon = icon("line-chart")),
+                                       
+                                       br(),
+                                       br(),
+                                       
+                                       strong('Author:'),
+                                       
+                                       p("Koen Derks"),
+                                       
+                                       p("koen-derks@student.uva.nl")
+                                       
+                          ),
+                          
+                          mainPanel(
+                              
+                              titlePanel("Results"),
+                              
+                              tableOutput(outputId = 'table'),
+                              
+                              plotOutput(outputId = 'plot'),
+                              
+                              plotOutput(outputId = 'plot2'),
+                              
+                              downloadButton('downloadnetwork', 'Download networks as PDF')
+                              
+                          )
+                          
+                 )
                  
-                 br(),
+                 )
                  
-                 strong('You do not have to specify both files. It is possible to run an analysis on one or both of the networks.'),
-                 
-                 br(),
-                 
-                 tags$a(href = "https://www.dropbox.com/sh/48i4t1hc63aufw0/AADUGGFkSkE3TXPYo6eaqLICa?dl=0", "Example datasets"),
-                 
-                 br(),
-                 br(),
-                 
-                 p('The data you select for a co-occurrence network should look like this:'),
-                 
-                 p('Column 1: ID of the raters (1,2,3 etc.).'),
-                 
-                 p('Column 2: Grade given by the rater (1-10).'),
-                 
-                 p('Column 3: General name of the article (e.g. Miller_Chapman_2001).'),
-                 
-                 fileInput(inputId = 'data',
-                           label = 'Choose datafile for co-occurence network'),
-                 
-                 selectInput('typedata', 
-                             label = "My co-occurence data is of type:",
-                             choices = list(".csv",
-                                            ".txt",
-                                            ".xlsx"), selected = ".csv"),
-                 
-                 p('The data you select for a citation network should look like this:'),
-                 
-                 p('Column 1: General name of the source article (e.g. Miller_Chapman_2001).'),
-                 
-                 p('Column 2: General name of the target article (e.g. Evans_Anastasio_1968).'),
-                 
-                 p('Column 3: A logical indicating a citation (1 = yes, 0 = no).'),
-                 
-                 fileInput('data2',
-                           label = 'Choose datafile for citation network'),
-                 
-                 selectInput('typedata2',
-                             label = 'My citation data is of type:',
-                             choices = list('.csv',
-                                            '.txt',
-                                            '.xlsx'),selected = '.csv'),
-                 
-                 selectInput('sort',
-                             label = "I want to see:",
-                             choices = list("Full analysis",
-                                            "Descriptives"), selected = "Full analysis"),
-                 
-                 numericInput('length',
-                              label = '(Full anaysis) I want to see a top:',
-                              value = 10,
-                              min = 1,
-                              max = 20),
-                 
-                 numericInput('samples',
-                              label = '(Full anaysis) I want to take this many samples for the overall ranks:',
-                              value = 100,
-                              min = 1,
-                              max = 10000),
-                 
-                 actionButton('action','Run analysis'),
-                 
-                 br(),
-                 
-                 strong('Author:'),
-                 
-                 p("Koen Derks"),
-                 
-                 p("koen-derks@student.uva.nl")
-                 
-    ),
-    
-    mainPanel(
-        
-        tableOutput(outputId = 'table'),
-        
-        plotOutput(outputId = 'plot'),
-        
-        plotOutput(outputId = 'plot2'),
-        
-        downloadButton('downloadnetwork', 'Download network PDF')
-        
-    )
-    
 )
 
 server <- function(input, output) {
     
     source("Functions_literatureNetworksApp.R")
+    
+    observe({
+        toggle("line1",anim = TRUE,condition = input$show)
+        toggle("line2",anim = TRUE,condition = input$show)
+        toggle("line3",anim = TRUE,condition = input$show)
+        toggle("line4",anim = TRUE,condition = input$show)
+    })
+    
+    observe({
+        toggle("line5",anim = TRUE,condition = input$show2)
+        toggle("line6",anim = TRUE,condition = input$show2)
+        toggle("line7",anim = TRUE,condition = input$show2)
+        toggle("line8",anim = TRUE,condition = input$show2)
+    })
     
     # start action button 
     observeEvent(input$action, {
@@ -270,7 +321,8 @@ server <- function(input, output) {
                 net<-qgraph(graph,
                             layout='spring',
                             cut=2,
-                            title='Co-occurrence Network')
+                            title='Co-occurrence Network',
+                            labels = 1:nrow(graph))
                 
                 cent <- centrality_auto(net)$node.centrality
                 
@@ -316,7 +368,6 @@ server <- function(input, output) {
                 final<-final[,-1]
                 
                 # Compute overall rank using gibbs sampler
-                
                 
                 require(MASS)
                 require(mvtnorm)
@@ -372,7 +423,8 @@ server <- function(input, output) {
                     qgraph(graph,
                            layout='spring',
                            cut=2,
-                           title='Co-occurrence network')
+                           title='Co-occurrence network',
+                           labels = 1:nrow(graph))
                 )
                 
                 output$table <- renderTable(ret)
@@ -390,7 +442,8 @@ server <- function(input, output) {
                         qgraph(graph,
                                layout='spring',
                                cut=2,
-                               title='Co-occurrence network')
+                               title='Co-occurrence network',
+                               labels = 1:nrow(graph))
                         dev.off()
                     })
                 
@@ -672,7 +725,8 @@ server <- function(input, output) {
                         cut=2,
                         title='Co-occurrence Network',
                         nodeNames=rownames(graph_data),
-                        legend=FALSE)
+                        legend=FALSE,
+                        labels = 1:nrow(graph))
             
             file2<-input$data2
             
@@ -825,7 +879,8 @@ server <- function(input, output) {
             output$plot<-renderPlot(qgraph(graph,
                                            layout='spring',
                                            cut=2,
-                                           title='Co-occurrence Network'))
+                                           title='Co-occurrence Network',
+                                           labels = 1:nrow(graph)))
             
             output$plot2<-renderPlot(qgraph(edgelist, 
                                             layout="spring", 
@@ -860,7 +915,8 @@ server <- function(input, output) {
                     qgraph(graph,
                            layout='spring',
                            cut=2,
-                           title='Co-occurrence Network')
+                           title='Co-occurrence Network',
+                           labels = 1:nrow(graph))
                     
                     qgraph(edgelist, 
                            layout="spring", 
