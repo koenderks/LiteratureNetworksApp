@@ -1,38 +1,5 @@
-if(!"shiny" %in% installed.packages()) 
-{ 
-    install.packages("shiny") 
-}
-library(shiny)
-
-if(!"qgraph" %in% installed.packages()) 
-{ 
-    install.packages("qgraph") 
-}
-library(qgraph)
-
-if(!"xlsx" %in% installed.packages()) 
-{ 
-    install.packages("xlsx") 
-}
-library(xlsx)
-
-if(!"gridExtra" %in% installed.packages()) 
-{ 
-    install.packages("gridExtra") 
-}
-library(gridExtra)
-
-if(!"shinythemes" %in% installed.packages()) 
-{ 
-    install.packages("shinythemes") 
-}
-library(shinythemes)
-
-if(!"shinyjs" %in% installed.packages()) 
-{ 
-    install.packages("shinyjs") 
-}
-library(shinyjs)
+source("Packages_literatureNetworksApp.R")
+source("Functions_literatureNetworksApp.R")
 
 ui <- navbarPage(title = "Literature Network app",
                  theme = shinytheme("cerulean"),
@@ -157,8 +124,6 @@ ui <- navbarPage(title = "Literature Network app",
 )
 
 server <- function(input, output) {
-    
-    source("Functions_literatureNetworksApp.R")
     
     observe({
         toggle("line1",anim = TRUE,condition = input$show)
