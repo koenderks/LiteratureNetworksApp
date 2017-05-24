@@ -117,11 +117,11 @@ ui <- navbarPage(title = "Literature Network app",
                                                     min = 1,
                                                     max = 20),
                                        
-                                       numericInput('samples',
-                                                    label = '(Full anaysis only) I want to take this many samples in the latent data augmentation:',
-                                                    value = 100,
-                                                    min = 1,
-                                                    max = 10000),
+                                       sliderInput(inputId = "samples", 
+                                                   label = '(Full anaysis only) I want to take this many samples in the latent data augmentation:',
+                                                   value = 100,
+                                                   min = 1,
+                                                   max = 5000),
                                        
                                        actionButton(inputId = 'action',label = 'Run analysis', icon = icon("line-chart")),
                                        
@@ -891,7 +891,7 @@ server <- function(input, output) {
             
             if(input$sort=='Full analysis'){
                 
-                output$table<-renderTable(head(res,n=input$length),rownames = FALSE)
+                output$table<-renderTable(head(res,n=input$length),rownames = TRUE)
                 
             } else if(input$sort=='Descriptives'){
                 
@@ -903,7 +903,7 @@ server <- function(input, output) {
                 
                 filename = function()
                 {
-                    paste("network", class = ".pdf", sep = "") 
+                    paste("LiteratureNetworks", class = ".pdf", sep = "") 
                 },
                 
                 content = function(file) 
