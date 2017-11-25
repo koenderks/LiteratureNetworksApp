@@ -3,3 +3,6 @@ A R Shiny app to estimate your own networks based on a literature search. The ap
 
 ## Project folder
 https://osf.io/bxz6c/
+
+## Direct link
+https://koenderks.shinyapps.io/LiteratureNetworks/
